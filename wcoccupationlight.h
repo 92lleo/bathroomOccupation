@@ -27,6 +27,7 @@ void handleReservation();
 void handleBlink();
 
 void handleRoot();
+void handleJson();
 void handleSetLight();
 
 #endif /* _wcoccupationlight_H_ */

@@ -71,13 +71,29 @@ void setup() {
 	// web server stuff
 	webServer.on("/", handleRoot);
 	webServer.onNotFound(handleRoot);
-	webServer.on("/inline", []() {
-		webServer.send(200, "text/plain", "this works as well");
+	webServer.on("/json", handleJson);
+
+	webServer.on("/set/red/on", []() {
+		setLightOn(red, true);
+		webServer.send(200, "text/plain", "");
+	});
+	webServer.on("/set/red/off", []() {
+		setLightOn(red, false);
+		webServer.send(200, "text/plain", "");
+	});
+	webServer.on("/set/green/on", []() {
+		setLightOn(green, true);
+		webServer.send(200, "text/plain", "");
+	});
+	webServer.on("/set/green/off", []() {
+		setLightOn(green, false);
+		webServer.send(200, "text/plain", "");
 	});
 
 	httpUpdater.setup(&webServer);
 
 	webServer.begin();
+
 	Serial.println("Server started");
 	Serial.println(WiFi.localIP());
 
@@ -211,6 +227,21 @@ void handleRoot() {
 		response += "will go inactive in " + String(-(millis() - lastSwitch - activeTimeout) / 60 / 1000) + " minutes";
 	}
 
-
 	webServer.send(200, "text/html", response);
+}
+
+void handleJson() {
+	String response;
+	DynamicJsonDocument doc(1024);
+
+	doc["red"] = red.isOn;
+	doc["green"] = green.isOn;
+	doc["occupied"] = isOccupied;
+	doc["lastSwitchMinutes"] = ((millis() - lastSwitch) / 60 / 1000);
+	doc["active"] = isActive;
+	doc["uptimeMillis"] = millis();
+	doc["timeUntilInactiveMinutes"] = (-(millis() - lastSwitch - activeTimeout) / 60 / 1000);
+
+	serializeJson(doc, response);
+	webServer.send(200, "application/json", response);
 }
